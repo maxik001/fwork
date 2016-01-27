@@ -1,0 +1,1 @@
+Default file in folder to store folder in Git repository.
