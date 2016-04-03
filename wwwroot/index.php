@@ -1,13 +1,10 @@
 <?php
-
-/*
- * App: FWork
- * 
- * Filename: index.php
- * 
- * Descr: Entry point
- * 
- * (c) Gusev Maxim, 2015
+/**
+ * @package FWork
+ * @subpackage index.php
+ * @version 0.2
+ * @author Maksim O. Gusev maxgusev@gmail.com
+ * @copyright 2016 Maksim O. Gusev 
  * 
  */
 
