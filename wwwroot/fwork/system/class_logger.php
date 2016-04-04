@@ -18,19 +18,33 @@ class logger_exception extends Exception
 	}
 }
 
+class log_level 
+{
+	const NOTSET	= 'notset';
+	const NOTICE	= 'notice';
+	const WARNING	= 'warning';
+	const ERROR		= 'error';
+}
 
 class logger 
 {
-	private $log_level_available;
+	private $log_levels_available = array(
+		log_level::NOTSET	=> 0,
+		log_level::NOTICE	=> 10,
+		log_level::WARNING	=> 20,
+		log_level::ERROR	=> 30
+	);
+	
+	private $log_level_default = log_level::NOTICE;
+
+	private $log_level;
 	
 	private $log_filename;
 	private $log_file_ptr;
 	
 	private $subsystem_name;
 	
-	private $log_level;
-	
-	function __construct($_log_filename, $_log_level = "Notice" ,$_subsystem_name = NULL) 
+	function __construct($_log_filename, $_log_level =  log_level::NOTICE, $_subsystem_name = NULL) 
 	{
 		$this->log_filename = $_log_filename;
 		$this->subsystem_name = $_subsystem_name;
@@ -42,20 +56,11 @@ class logger
 		if( ! is_writable($this->log_filename) ) {
 			throw new logger_exception("File ".$this->log_filename." is not writable.");
 		}
-		
-		/* Set log level */ 
-		$this->log_level_available = array(
-			"NotSet" => 0,
-			"Notice" => 10,
-			"Warning" => 20,
-			"Error" => 30
-		);
-		
-		if( array_key_exists( $_log_level, $this->log_level_available) ) 
-		{
-			$this->log_level = $this->log_level_available[$_log_level];
+				
+		if( array_key_exists( $_log_level, $this->log_levels_available) ) {
+			$this->log_level = $this->log_levels_available[$_log_level];
 		} else {
-			$this->log_level = $this->log_level_available['Notice'];
+			$this->log_level = $this->log_levels_available[$this->log_level_default];
 		}
 				
 	}
@@ -77,8 +82,7 @@ class logger
 		try {
 			$this->log_file_ptr = fopen($this->log_filename, 'a');
 				
-			if( !$this->log_file_ptr )
-			{
+			if( !$this->log_file_ptr ) {
 				throw new logger_exception("Fail to open log file: ".$this->log_filename);
 			}
 		} catch ( Exception $e ) {
@@ -94,6 +98,11 @@ class logger
 	 */
 	public function write_message($_text, $_log_level) 
 	{
+		if( $this->log_level < $this->log_levels_available[$_log_level] ) {
+			return;
+		}
+		
+		
 		if( !is_resource($this->log_file_ptr) ) {
 			throw new logger_exception("Cant find log file resource. Log filename: ".$this->log_file);
 		}
@@ -104,9 +113,8 @@ class logger
 		try {
 			$fwrite_result = fwrite($this->log_file_ptr, $log_message_full);
 			
-			if( $fwrite_result ) 
-			{
-				throw new logger_exception("Fail to write message to log file: ".$this->log_file);
+			if( $fwrite_result ) {
+				throw new logger_exception("Fail to write message to log file: ".$this->log_filename);
 			}
 		} catch ( Exception $e ) {
 			return $e->getMessage();

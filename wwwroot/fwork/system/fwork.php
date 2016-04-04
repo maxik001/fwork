@@ -77,7 +77,7 @@ class fwork
 	{
 		/* Try to create logger */
 		try {
-			$this->logger = new logger($this->fwork_log_path."fwork.log", "fwork");
+			$this->logger = new logger($this->fwork_log_path."fwork.log", log_level::ERROR, "fwork");
 		} catch ( Exception $e ) {
 			exit("[Exception] ".get_class($e)." ".$e->getFile().":".$e->getLine()." ".$e->getMessage());
 		}
@@ -90,14 +90,26 @@ class fwork
 		}
 
 		try {
-			$this->logger->write_message("FWork version ".$this->version." start!");
+			$this->logger->write_message("FWork version ".$this->version." start!", log_level::NOTICE);
 		} catch ( Exception $e ) {
 			$this->cap();
 		}
 		
+
+		try {
+			$this->logger->write_message("Error.", log_level::ERROR);
+		} catch ( Exception $e ) {
+			$this->cap();
+		}
 		
 		try {
-			$this->logger->write_message("FWork finished.");
+			$this->logger->write_message("Warning.", log_level::WARNING);
+		} catch ( Exception $e ) {
+			$this->cap();
+		}
+		
+		try {
+			$this->logger->write_message("FWork finished.", log_level::NOTICE);
 		} catch ( Exception $e ) {
 			$this->cap();
 		}
