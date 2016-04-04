@@ -8,49 +8,24 @@
  * 
  */
 
-/*
- * Determine site root path
- */
-define('SITE_ROOT_PATH', realpath('.'));
+/* We determine our location */
 
-/*
- * Determine fwork folder
- */
+$current_folder = realpath(".");
+$current_folder = rtrim($current_folder, '/').'/';
 
-$fwork_folder = 'fwork';
+/* Check the availability and accessibility of a base FWork class */
 
-if(realpath($fwork_folder) !== FALSE) {
-	$fwork_folder = realpath($fwork_folder).'/';
+$fwork_core_class_def = $current_folder."fwork/system/fwork.php";
+
+if( is_readable($fwork_core_class_def) == FALSE ) {
+	exit("Error! Execution is interrupted! Cant read FWork core class definition: ".$fwork_core_class_def);
 }
 
-// Dont forget trailing slash
-$fwork_folder = rtrim($fwork_folder, '/').'/';
+/* Load FWork core class definition */ 
+require_once($fwork_core_class_def);
 
-// Check that FWork root folder is real folder
-if( ! is_dir($fwork_folder) ) {
-	exit("Error! Something wrong with FWork root folder: ".$fwork_folder.". Check it!");
-}
-
-// Path to the fwork system folder
-define('FWORK_BASE_PATH', str_replace("\\", "/", $fwork_folder));
-
-
-/*
- * Determine app folder
- */
-
-$app_folder = 'app';
-
-if(is_dir($app_folder)) {
-	define('APP_BASE_PATH', $app_folder.'/');
-} else {
-	exit("Error! Cant find app folder: ".$app_folder.". Nothing to do!");
-}
-
-/*
- * Call FWork system
- */
-
-require_once(FWORK_BASE_PATH.'system/fwork.php');
+/* Call FWork system */
+$fwork = new fwork($current_folder);
+$fwork->run();
 
 ?>

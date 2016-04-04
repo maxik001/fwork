@@ -1,69 +1,118 @@
-<?php 
-// Block direct exec
-defined('FWORK_BASE_PATH') OR exit('No direct script access allowed');
+<?php
 
-/*
- * App: FWork
- *
- * Filename: ~/fwork/system/class_logger.php
- *
- * Descr: Class logger
- *
- * (c) Gusev Maxim, 2015
+/**
+ * @package FWork
+ * @subpackage class_logger.php
+ * @version 0.2
+ * @author Maksim O. Gusev maxgusev@gmail.com
+ * @copyright 2016 Maksim O. Gusev
  *
  */
 
-class logger {
-	private $log_file;
+/* Custom exception for class */
+class logger_exception extends Exception
+{
+	public function __construct($_message, $_code = 0, Exception $_previous = null) 
+	{
+		parent::__construct($_message, $_code, $_previous);
+	}
+}
+
+
+class logger 
+{
+	private $log_level_available;
+	
+	private $log_filename;
+	private $log_file_ptr;
+	
 	private $subsystem_name;
 	
-	function __construct($_log_file, $_subsystem_name = NULL) {
-		$this->log_file = $_log_file;
+	private $log_level;
+	
+	function __construct($_log_filename, $_log_level = "Notice" ,$_subsystem_name = NULL) 
+	{
+		$this->log_filename = $_log_filename;
 		$this->subsystem_name = $_subsystem_name;
+		
+		if( is_dir($this->log_filename) ) {
+			throw new logger_exception("It is not a file: ".$this->log_filename);
+		}
+		
+		if( ! is_writable($this->log_filename) ) {
+			throw new logger_exception("File ".$this->log_filename." is not writable.");
+		}
+		
+		/* Set log level */ 
+		$this->log_level_available = array(
+			"NotSet" => 0,
+			"Notice" => 10,
+			"Warning" => 20,
+			"Error" => 30
+		);
+		
+		if( array_key_exists( $_log_level, $this->log_level_available) ) 
+		{
+			$this->log_level = $this->log_level_available[$_log_level];
+		} else {
+			$this->log_level = $this->log_level_available['Notice'];
+		}
+				
+	}
+
+	private function generate_current_timestamp_string() 
+	{
+		return date("Y-m-d H:i:s", time() );
+	}
+
+	public function close()
+	{
+		$close_result = fclose($this->log_file_ptr);
+		
+		return $close_result;
 	}
 	
-	/*
-	 * function write2log()
-	 * 
-	 * @param string $_message
-	 * 
-	 */
-	public function write2log($_message) {
+	public function open()
+	{
 		try {
-			$ptr = fopen($this->log_file, FOPEN_APPEND);
-			
-			if( !$ptr) {
-				throw new Exception("Fail to open log file: ".$this->log_file);
+			$this->log_file_ptr = fopen($this->log_filename, 'a');
+				
+			if( !$this->log_file_ptr )
+			{
+				throw new logger_exception("Fail to open log file: ".$this->log_filename);
 			}
 		} catch ( Exception $e ) {
 			return $e->getMessage();
 		}
 		
-		$timestamp_string = $this->generate_current_timestamp_string();
-		$log_message_full = $timestamp_string." ".$this->subsystem_name." ".$_message."\n\r";
-
-		try {
-			$fwrite_result = fwrite($ptr, $log_message_full);
-			
-			if( $fwrite_result ) {
-				throw new Exception("Fail to write message to log file: ".$this->log_file);
-			}
-
-			fclose($ptr);
-		} catch ( Exception $e ) {
-			return $e->getMessage();
-		} 
 	}
 	
-	/*
-	 * function generate_current_timestamp_string()
+	/**
 	 * 
-	 * @return string Date/time string in special format
-	 * 
+	 * @param string $_message
+	 * @throws logger_exception
 	 */
-	private function generate_current_timestamp_string() {
-		return date("Y-m-d H:i:s", time() );
+	public function write_message($_text, $_log_level) 
+	{
+		if( !is_resource($this->log_file_ptr) ) {
+			throw new logger_exception("Cant find log file resource. Log filename: ".$this->log_file);
+		}
+		
+		$timestamp_string = $this->generate_current_timestamp_string();
+		$log_message_full = $timestamp_string." ".$this->subsystem_name." ".$_text."\n\r";
+
+		try {
+			$fwrite_result = fwrite($this->log_file_ptr, $log_message_full);
+			
+			if( $fwrite_result ) 
+			{
+				throw new logger_exception("Fail to write message to log file: ".$this->log_file);
+			}
+		} catch ( Exception $e ) {
+			return $e->getMessage();
+		}
 	}
+	
 }
 
 ?>

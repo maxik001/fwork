@@ -1,48 +1,56 @@
 <?php 
-// Block direct exec
-defined('FWORK_BASE_PATH') OR exit('No direct script access allowed');
 
-/*
- * App: FWork
- *
- * Filename: ~/fwork/system/class_config.php
- *
- * Descr: Class config
- *
- * (c) Gusev Maxim, 2015
+/**
+ * @package FWork
+ * @subpackage class_config.php
+ * @version 0.2
+ * @author Maksim O. Gusev maxgusev@gmail.com
+ * @copyright 2016 Maksim O. Gusev
  *
  */
 
-class config {
+class config 
+{
 	// All config items
-	var $config_items = array();
-	// Path to folders
-	var $config_path = array(APP_BASE_PATH);
+	private $config_items = array();
 	
-	/*
-	 * Constructor
+	private $config_files_folder;
+	
+	/**
+	 * 
+	 * @param string $_folder
 	 */
-	function __construct() {
-		
+	function __construct($_folder) 
+	{
+		$this->config_files_folder = $_folder; 
 	}
 	
-	/*
-	 * function item()
+	/**
+	 * 
+	 * @param string $_name
+	 * @param string $_sub_config
+	 * @return mixed
 	 */
-	public function item($_name, $_sub_config = '') {
+	public function item($_name, $_sub_config = '') 
+	{
 		$item = FALSE;
 		
-		if($_sub_config == '') {
-			if( isset($this->config_items[$_name]) ) {
+		if($_sub_config == '') 
+		{
+			if( isset($this->config_items[$_name]) ) 
+			{
 				return FALSE;
 			}
 			$item = $this->config_items[$_name];
-		} else {
-			if( ! isset($this->config_items[$_sub_config]) ) {
+		} else 
+		{
+			if( ! isset($this->config_items[$_sub_config]) ) 
+			{
 				return FALSE;
 			} 
 			
-			if( ! isset($this->config_items[$_sub_config][$_name]) ) {
+			if( ! isset($this->config_items[$_sub_config][$_name]) ) 
+			{
 				return FALSE;
 			}
 			
@@ -52,44 +60,56 @@ class config {
 		return $item;
 	}
 	
-	/*
-	 * function load()
+	/**
+	 * 
+	 * @param string $_config_name
+	 * @param string $_use_sub_config
+	 * @return boolean
 	 */
-	public function load($_config_name, $_use_sub_config = FALSE) {
-		if($_config_name == '') {
+	public function load($_config_name, $_use_sub_config = FALSE) 
+	{
+		if($_config_name == '') 
+		{
 			return FALSE;
 		}
 		
 		$flag_found = FALSE;
 		
-		foreach($this->config_path as $path) {
+		foreach($this->config_files_folder as $path) 
+		{
 			// Filename with full path
-			$config_file_wfp = $path.'config/'.$_config_name.'.php';
+			$config_file_wfp = $path.$_config_name.'.php';
 			
-			if( file_exists($config_file_wfp) ) {
+			if( file_exists($config_file_wfp) ) 
+			{
 				$flag_found = TRUE;
 				break;
 			}
 		}
 		
-		if($flag_found === FALSE) {
+		if($flag_found === FALSE) 
+		{
 			return FALSE;
 		}
 		
 		include($config_file_wfp);
 		
 		// Included file must contain $config array
-		if( ! isset($config) OR ! is_array($config) ) {
+		if( ! isset($config) OR ! is_array($config) ) 
+		{
 			return FALSE;
 		}
 		
 		if($_use_sub_config === TRUE) {
-			if( isset($this->config_items[$_config_name]) ) {
+			if( isset($this->config_items[$_config_name]) ) 
+			{
 				$this->config_items[$_config_name] = array_merge($this->config_items[$_config_name], $config);
-			} else {
+			} else 
+			{
 				$this->config_items[$_config_name] = $config;
 			}
-		} else {
+		} else 
+		{
 			$this->config_items = array_merge($this->config_items, $config);
 		}
 		
