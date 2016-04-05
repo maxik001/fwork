@@ -135,7 +135,33 @@ class fwork
 		
 		$this->logger->write_message("Get from config base_url: ".$this->config->item('base_url'), log_level::NOTICE);
 		
+		/* Validate url */
+		$full_url = $this->config->item('base_url').$_SERVER['REQUEST_URI'];
 		
+		$this->logger->write_message("Try to validate full url: ".$full_url, log_level::NOTICE);
+		
+		$full_url_is_valid = filter_var(
+			$full_url,
+			FILTER_VALIDATE_URL
+		);
+		
+		if( $full_url_is_valid == FALSE ) {
+			$this->logger->write_message("Full url is not valid", log_level::WARNING);
+		}
+		
+		/* Parse url */
+		
+		/* Cut GET variables */
+		$url_cut = explode("?", $_SERVER['REQUEST_URI'], 2)[0];
+		
+		echo "<pre>";
+		var_dump($url_cut);
+		echo "</pre>";
+		
+		
+		echo "<pre>";
+		var_dump($_SERVER);
+		echo "</pre>";
 		
 		$this->logger->write_message("I finished work", log_level::NOTICE);
 	}
