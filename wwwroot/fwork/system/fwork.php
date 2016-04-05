@@ -113,8 +113,6 @@ class fwork
 		} catch ( Exception $e ) {
 			$this->cap();
 		}
-		
-		$this->logger->close();
 	}
 	
 }

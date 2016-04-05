@@ -6,10 +6,11 @@
  * @version 0.2
  * @author Maksim O. Gusev maxgusev@gmail.com
  * @copyright 2016 Maksim O. Gusev
- *
  */
 
-/* Custom exception for class */
+/**
+ * Class logger exception 
+ */
 class logger_exception extends Exception
 {
 	public function __construct($_message, $_code = 0, Exception $_previous = null) 
@@ -18,6 +19,9 @@ class logger_exception extends Exception
 	}
 }
 
+/**
+ * Class log level
+ */
 class log_level 
 {
 	const NOTSET	= 'notset';
@@ -26,6 +30,9 @@ class log_level
 	const ERROR		= 'error';
 }
 
+/**
+ * Class logger
+ */
 class logger 
 {
 	private $log_levels_available = array(
@@ -37,18 +44,31 @@ class logger
 	
 	private $log_level_default = log_level::NOTICE;
 
-	private $log_level;
+	private $log_level_threshold;
+
+	private $date_format = "Y-m-d H:i:s";
 	
 	private $log_filename;
 	private $log_file_ptr;
+	private $log_file_write_mode = 'a';
 	
 	private $subsystem_name;
 	
-	function __construct($_log_filename, $_log_level =  log_level::NOTICE, $_subsystem_name = NULL) 
+	/**
+	 * Class constructor
+	 * 
+	 * @param string $_log_filename
+	 * @param string $_log_level_threshold
+	 * @param unknown $_subsystem_name
+	 * @throws logger_exception
+	 */
+	public function __construct($_log_filename, $_log_level_threshold = log_level::NOTICE, $_subsystem_name = NULL) 
 	{
+		/* Set params */
 		$this->log_filename = $_log_filename;
 		$this->subsystem_name = $_subsystem_name;
 		
+		/* Check destination */
 		if( is_dir($this->log_filename) ) {
 			throw new logger_exception("It is not a file: ".$this->log_filename);
 		}
@@ -57,30 +77,65 @@ class logger
 			throw new logger_exception("File ".$this->log_filename." is not writable.");
 		}
 				
-		if( array_key_exists( $_log_level, $this->log_levels_available) ) {
-			$this->log_level = $this->log_levels_available[$_log_level];
+		/* Set log level threshold */
+		if( array_key_exists( $_log_level_threshold, $this->log_levels_available) ) {
+			$this->log_level_threshold = $this->log_levels_available[$_log_level_threshold];
 		} else {
-			$this->log_level = $this->log_levels_available[$this->log_level_default];
+			$this->log_level_threshold = $this->log_levels_available[$this->log_level_default];
 		}
 				
 	}
-
-	private function generate_current_timestamp_string() 
+	
+	/**
+	 * Class destructor
+	 */
+	public function __destruct() 
 	{
-		return date("Y-m-d H:i:s", time() );
+		$close_file_result = FALSE;
+		
+		if( is_resource($this->log_file_ptr) ) {
+			$close_file_result = fclose($this->log_file_ptr);
+		}
+		
+		return $close_file_result;
 	}
 
-	public function close()
+	/**
+	 * Class private functions 
+	 */
+	
+	private function format_message($_text, $_log_level) 
 	{
-		$close_result = fclose($this->log_file_ptr);
+		$message = "";
 		
-		return $close_result;
+		$timestamp = $this->get_current_timestamp();
+		$message .= $timestamp;
+		$message .= " [".$_log_level."]";
+		$message .= " <".$this->subsystem_name.">";
+		$message .= " ".$_text.PHP_EOL;
+
+		return $message;
 	}
 	
+	/**
+	 * Return date/time in preset format
+	 */
+	private function get_current_timestamp() 
+	{
+		return date( $this->date_format, time() );
+	}
+
+	/**
+	 * Class public functions
+	 */
+	
+	/**
+	 * @throws logger_exception
+	 */
 	public function open()
 	{
 		try {
-			$this->log_file_ptr = fopen($this->log_filename, 'a');
+			$this->log_file_ptr = fopen($this->log_filename, $this->log_file_write_mode);
 				
 			if( !$this->log_file_ptr ) {
 				throw new logger_exception("Fail to open log file: ".$this->log_filename);
@@ -98,20 +153,19 @@ class logger
 	 */
 	public function write_message($_text, $_log_level) 
 	{
-		if( $this->log_level < $this->log_levels_available[$_log_level] ) {
+		/* If threshold level lower that in message - skip output */
+		if( $this->log_level_threshold < $this->log_levels_available[$_log_level] ) {
 			return;
 		}
-		
 		
 		if( !is_resource($this->log_file_ptr) ) {
 			throw new logger_exception("Cant find log file resource. Log filename: ".$this->log_file);
 		}
 		
-		$timestamp_string = $this->generate_current_timestamp_string();
-		$log_message_full = $timestamp_string." ".$this->subsystem_name." ".$_text."\n\r";
-
+		$log_message = $this->format_message($_text, $_log_level);
+		
 		try {
-			$fwrite_result = fwrite($this->log_file_ptr, $log_message_full);
+			$fwrite_result = fwrite($this->log_file_ptr, $log_message);
 			
 			if( $fwrite_result ) {
 				throw new logger_exception("Fail to write message to log file: ".$this->log_filename);
