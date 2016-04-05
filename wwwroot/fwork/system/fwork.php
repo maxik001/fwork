@@ -25,7 +25,12 @@ class fwork
 	private $config;
 	private $logger;
 	
-	function __construct($_base_path) 
+	/**
+	 * Class constructor
+	 * 
+	 * @param string $_base_path
+	 */
+	public function __construct($_base_path) 
 	{
 		$this->version = "0.2";
 		
@@ -36,16 +41,22 @@ class fwork
 		$this->fwork_log_path=$this->fwork_base_path."fwork/log/";
 		$this->fwork_system_path=$this->fwork_base_path."fwork/system/";
 		
-		/* check the availability of the main folders */
+		/* Check the availability of the main folders */
 		$this->check_folders();
 				
 		$this->load_classes();
 	}
 	
+	/**
+	 * Cap function. Nothing to do.
+	 */
 	private function cap() {
 		/* Nothing to do */
 	}
 	
+	/**
+	 * 
+	 */
 	private function check_folders() 
 	{
 		if( ! is_dir($this->app_path) ) {
@@ -58,6 +69,9 @@ class fwork
 		
 	}
 	
+	/**
+	 * 
+	 */
 	private function load_classes() 
 	{
 		if( file_exists( $this->fwork_system_path.'class_logger.php' ) ) {
@@ -73,46 +87,57 @@ class fwork
 		}
 	}
 	
+	/**
+	 * This function executed when need to terminate program on exception
+	 * 
+	 * @param exception $_exception
+	 */
+	private function terminate($_exception) 
+	{
+		exit("[Exception] ".get_class($_exception)." ".$_exception->getFile().":".$_exception->getLine()." ".$_exception->getMessage());
+	}
+	
+	/**
+	 * 
+	 */
 	public function run() 
 	{
 		/* Try to create logger */
+		$log_file = $this->fwork_log_path."fwork.log";
+		
 		try {
-			$this->logger = new logger($this->fwork_log_path."fwork.log", log_level::ERROR, "fwork");
+			$this->logger = new logger($log_file, log_level::ERROR, get_class($this));
 		} catch ( Exception $e ) {
-			exit("[Exception] ".get_class($e)." ".$e->getFile().":".$e->getLine()." ".$e->getMessage());
+			$this->terminate($e);
 		}
 		
-		/* Try to open logger */
+		/* Try to open log file */
 		try {
 			$this->logger->open();
 		} catch ( Exception $e ) {
-			exit("[Exception] ".get_class($e)." ".$e->getFile().":".$e->getLine()." ".$e->getMessage());
+			$this->terminate($e);
 		}
 
-		try {
-			$this->logger->write_message("FWork version ".$this->version." start!", log_level::NOTICE);
-		} catch ( Exception $e ) {
-			$this->cap();
-		}
-		
+		$this->logger->write_message("I started! Version ".$this->version, log_level::NOTICE);
 
-		try {
-			$this->logger->write_message("Error.", log_level::ERROR);
-		} catch ( Exception $e ) {
-			$this->cap();
-		}
+		/* Try to load config */ 
+		$this->config = new config($this->fwork_config_path);
 		
-		try {
-			$this->logger->write_message("Warning.", log_level::WARNING);
-		} catch ( Exception $e ) {
-			$this->cap();
-		}
+		$this->logger->write_message("Load config \"router\"", log_level::NOTICE);
+		$this->config->load('router');
 		
-		try {
-			$this->logger->write_message("FWork finished.", log_level::NOTICE);
-		} catch ( Exception $e ) {
-			$this->cap();
-		}
+		$this->logger->write_message("Get from config default_controller: ".$this->config->item('default_controller'), log_level::NOTICE);
+		$this->logger->write_message("Get from config default_method: ".$this->config->item('default_method'), log_level::NOTICE);
+		$this->logger->write_message("Get from config 404_controller: ".$this->config->item('404_controller'), log_level::NOTICE);
+		
+		$this->logger->write_message("Load config \"site\"", log_level::NOTICE);
+		$this->config->load('site');
+		
+		$this->logger->write_message("Get from config base_url: ".$this->config->item('base_url'), log_level::NOTICE);
+		
+		
+		
+		$this->logger->write_message("I finished work", log_level::NOTICE);
 	}
 	
 }

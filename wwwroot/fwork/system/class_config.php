@@ -14,15 +14,19 @@ class config
 	// All config items
 	private $config_items = array();
 	
-	private $config_files_folder;
+	private $config_files_folder = array();
 	
 	/**
 	 * 
 	 * @param string $_folder
 	 */
-	function __construct($_folder) 
+	function __construct($_folders) 
 	{
-		$this->config_files_folder = $_folder; 
+		if( !is_array($_folders) ) {
+			$this->config_files_folder = array_merge( $this->config_files_folder, (array)$_folders );
+		} else {
+			$this->config_files_folder = array_merge( $this->config_files_folder);
+		}
 	}
 	
 	/**
@@ -37,20 +41,16 @@ class config
 		
 		if($_sub_config == '') 
 		{
-			if( isset($this->config_items[$_name]) ) 
-			{
+			if( !isset($this->config_items[$_name]) ) {
 				return FALSE;
 			}
 			$item = $this->config_items[$_name];
-		} else 
-		{
-			if( ! isset($this->config_items[$_sub_config]) ) 
-			{
+		} else {
+			if( ! isset($this->config_items[$_sub_config]) ) {
 				return FALSE;
 			} 
 			
-			if( ! isset($this->config_items[$_sub_config][$_name]) ) 
-			{
+			if( ! isset($this->config_items[$_sub_config][$_name]) ) {
 				return FALSE;
 			}
 			
@@ -79,7 +79,7 @@ class config
 		{
 			// Filename with full path
 			$config_file_wfp = $path.$_config_name.'.php';
-			
+
 			if( file_exists($config_file_wfp) ) 
 			{
 				$flag_found = TRUE;
@@ -108,11 +108,10 @@ class config
 			{
 				$this->config_items[$_config_name] = $config;
 			}
-		} else 
-		{
+		} else {
 			$this->config_items = array_merge($this->config_items, $config);
 		}
-		
+
 		unset($config);
 		
 		return TRUE;
