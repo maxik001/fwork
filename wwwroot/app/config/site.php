@@ -2,7 +2,7 @@
 /*
  * Define base url
  */
-$config['base_url'] = 'http://fwork/';
+$config['base_url'] = 'http://fwork';
 
 
 ?>

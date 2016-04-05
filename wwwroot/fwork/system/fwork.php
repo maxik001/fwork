@@ -149,19 +149,45 @@ class fwork
 			$this->logger->write_message("Full url is not valid", log_level::WARNING);
 		}
 		
+		/* Define controller and method name */
+		$c_name = $this->config->item('default_controller');
+		$m_name = $this->config->item('default_method');
+		
 		/* Parse url */
 		
-		/* Cut GET variables */
+		$this->logger->write_message("Try to parse url", log_level::NOTICE);
+		
 		$url_cut = explode("?", $_SERVER['REQUEST_URI'], 2)[0];
+		$url_parts = explode('/', $url_cut);
+
+		$this->logger->write_message("Url without GET variables: ". $url_cut, log_level::NOTICE);
 		
-		echo "<pre>";
-		var_dump($url_cut);
-		echo "</pre>";
+		/* Convert URL parts to lower chars */
+		foreach($url_parts as $key => $item) {
+			$url_parts[$key] = mb_strtolower($item);
+		}
+
+		/* Parse url parts */
+		if( count($url_parts) < 2 || count($url_parts) > 3 ) {
+			$c_name = $this->config->item('404_controller');
+		}
 		
+		if( count($url_parts) == 2 ) {
+			if( strcmp($url_parts[1], '') !== 0 ) {
+				$m_name = $url_parts[1];
+			}
+		}
 		
-		echo "<pre>";
-		var_dump($_SERVER);
-		echo "</pre>";
+		if( count($url_parts) == 3 ) {
+			$c_name = $url_parts[1];
+			
+			if( strcmp($url_parts[2], '') !== 0 ) {
+				$m_name = $url_parts[2];
+			}
+		}		
+
+		$this->logger->write_message("Parsed controller from url: ". $c_name, log_level::NOTICE);
+		$this->logger->write_message("Parsed method from url: ". $m_name, log_level::NOTICE);
 		
 		$this->logger->write_message("I finished work", log_level::NOTICE);
 	}
