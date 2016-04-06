@@ -3,7 +3,7 @@
 /**
  * @package FWork
  * @subpackage class_logger.php
- * @version 0.2
+ * @version 1.0b
  * @author Maksim O. Gusev maxgusev@gmail.com
  * @copyright 2016 Maksim O. Gusev
  */

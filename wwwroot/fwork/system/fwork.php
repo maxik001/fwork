@@ -3,16 +3,15 @@
 /**
  * @package FWork
  * @subpackage fwork.php
- * @version 0.2
+ * @version 1.0b
  * @author Maksim O. Gusev maxgusev@gmail.com
  * @copyright 2016 Maksim O. Gusev
  *
  */
 
-
 class fwork 
 {
-	private $version;
+	private $version = "1.0b";
 	
 	private $fwork_base_path;
 	
@@ -20,7 +19,9 @@ class fwork
 	private $fwork_log_path;
 	private $fwork_system_path;
 	
-	private $app_path;
+	public static $base_url;
+	
+	public static $app_path;
 	
 	private $config;
 	private $logger;
@@ -32,11 +33,9 @@ class fwork
 	 */
 	public function __construct($_base_path) 
 	{
-		$this->version = "0.2";
-		
 		$this->fwork_base_path = $_base_path;
 		
-		$this->app_path=$this->fwork_base_path."app/";
+		fwork::$app_path=$this->fwork_base_path."app/";
 		$this->fwork_config_path=$this->fwork_base_path."app/config/";
 		$this->fwork_log_path=$this->fwork_base_path."fwork/log/";
 		$this->fwork_system_path=$this->fwork_base_path."fwork/system/";
@@ -45,6 +44,10 @@ class fwork
 		$this->check_folders();
 				
 		$this->load_classes();
+	}
+	
+	public static function get_base_path() {
+		return fwork::$fwork_base_path;
 	}
 	
 	/**
@@ -59,8 +62,8 @@ class fwork
 	 */
 	private function check_folders() 
 	{
-		if( ! is_dir($this->app_path) ) {
-			exit("Error! Execution is interrupted! FWork cant find app folder: ".$this->app_path);
+		if( ! is_dir(fwork::$app_path) ) {
+			exit("Error! Execution is interrupted! FWork cant find app folder: ".fwork::$app_path);
 		}
 
 		if( ! is_dir($this->fwork_config_path) ) {
@@ -84,6 +87,12 @@ class fwork
 			require_once( $this->fwork_system_path.'class_config.php' );
 		} else {
 			exit("Error! Execution is interrupted! FWork cant find config class: ".$this->fwork_system_path.'class_config.php');
+		}
+		
+		if( file_exists( $this->fwork_system_path.'class_base_controller.php' ) ) {
+			require_once( $this->fwork_system_path.'class_base_controller.php' );
+		} else {
+			exit("Error! Execution is interrupted! FWork cant find base controller class: ".$this->fwork_system_path.'class_base_controller.php');
 		}
 	}
 	
@@ -136,6 +145,7 @@ class fwork
 		$this->logger->write_message("Get from config base_url: ".$this->config->item('base_url'), log_level::NOTICE);
 		
 		/* Validate url */
+		fwork::$base_url = $this->config->item('base_url');
 		$full_url = $this->config->item('base_url').$_SERVER['REQUEST_URI'];
 		
 		$this->logger->write_message("Try to validate full url: ".$full_url, log_level::NOTICE);
@@ -188,6 +198,33 @@ class fwork
 
 		$this->logger->write_message("Parsed controller from url: ". $c_name, log_level::NOTICE);
 		$this->logger->write_message("Parsed method from url: ". $m_name, log_level::NOTICE);
+
+		/* Try to load controller */
+		$c_class_file = fwork::$app_path.'controllers/'.$c_name.'.php';
+		if( file_exists($c_class_file) ) {
+			$this->logger->write_message("Controller file found. Require filename: ". $c_class_file, log_level::NOTICE);
+			require_once($c_class_file);
+		} else {
+			$this->logger->write_message("Controller file not found. Filename: ". $c_class_file, log_level::WARNING);
+			$this->logger->write_message("Try to find 404 controller.", log_level::NOTICE);
+			
+			/* Try to route to 404 */
+			$c_name = $this->config->item('404_controller');
+			
+			$c404_class_file = fwork::$app_path.'controllers/'.$c_name.'.php';
+
+			if( file_exists($c404_class_file) ) {
+				
+				$this->logger->write_message("Controller 404 file found. Require filename: ". $c404_class_file, log_level::NOTICE);
+				require_once($c404_class_file);
+			} else {
+				$this->logger->write_message("Controller 404 file not found. Nothing to do.", log_level::WARNING);
+				exit(1);
+			}
+			
+		}
+                
+		$c_obj = new $c_name($m_name);
 		
 		$this->logger->write_message("I finished work", log_level::NOTICE);
 	}
