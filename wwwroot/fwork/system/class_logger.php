@@ -158,7 +158,7 @@ class logger
 	public function write_message($_text, $_log_level) 
 	{
 		/* If threshold level lower that in message - skip output */
-		if( $this->log_level_threshold < $this->log_levels_available[$_log_level] ) {
+		if( $this->log_level_threshold > $this->log_levels_available[$_log_level] ) {
 			return;
 		}
 		
