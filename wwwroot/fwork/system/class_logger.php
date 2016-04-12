@@ -28,6 +28,7 @@ class log_level
 	const NOTICE	= 'notice';
 	const WARNING	= 'warning';
 	const ERROR		= 'error';
+	const DEBUG		= 'debug';
 }
 
 /**
@@ -39,7 +40,8 @@ class logger
 		log_level::NOTSET	=> 0,
 		log_level::NOTICE	=> 10,
 		log_level::WARNING	=> 20,
-		log_level::ERROR	=> 30
+		log_level::ERROR	=> 30,
+		log_level::DEBUG	=> 40
 	);
 	
 	private $log_level_default = log_level::NOTICE;
