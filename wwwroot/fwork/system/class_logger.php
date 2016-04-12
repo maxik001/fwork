@@ -122,7 +122,11 @@ class logger
 	 */
 	private function get_current_timestamp() 
 	{
-		return date( $this->date_format, time() );
+		
+		$t = microtime(true);
+		$micro = sprintf("%06d",($t - floor($t)) * 1000000);
+		
+		return date( $this->date_format.".".$micro, $t); 
 	}
 
 	/**
