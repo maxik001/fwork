@@ -38,9 +38,9 @@ class logger
 {
 	private $log_levels_available = array(
 		log_level::NOTSET	=> 0,
-		log_level::NOTICE	=> 10,
+		log_level::ERROR	=> 10,
 		log_level::WARNING	=> 20,
-		log_level::ERROR	=> 30,
+		log_level::NOTICE	=> 30,
 		log_level::DEBUG	=> 40
 	);
 	
@@ -160,7 +160,7 @@ class logger
 	public function write_message($_text, $_log_level) 
 	{
 		/* If threshold level lower that in message - skip output */
-		if( $this->log_level_threshold > $this->log_levels_available[$_log_level] ) {
+		if( $this->log_level_threshold < $this->log_levels_available[$_log_level] ) {
 			return;
 		}
 		
