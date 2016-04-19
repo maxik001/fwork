@@ -75,6 +75,18 @@ class logger
 			throw new logger_exception("It is not a file: ".$this->log_filename);
 		}
 		
+		/* Try to create log file */
+		if( ! file_exists ($this->log_filename) ) {
+			try {
+				$touch_result = @touch($this->log_filename);
+			} catch(Exception $e) {
+				throw new logger_exception("Cant create file : ".$this->log_filename. " ". $e->getMessage());
+			}
+			if( $touch_result == FALSE ) {
+				throw new logger_exception("Cant create file ".$this->log_filename);
+			}
+		}
+			
 		if( ! is_writable($this->log_filename) ) {
 			throw new logger_exception("File ".$this->log_filename." is not writable.");
 		}

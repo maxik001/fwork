@@ -1,8 +1,4 @@
 <?php
-// Block direct exec
-defined('FWORK_BASE_PATH') OR exit('No direct script access allowed');
-
-
 /*
  * App: Custom
 *
@@ -14,13 +10,14 @@ defined('FWORK_BASE_PATH') OR exit('No direct script access allowed');
 *
 */
 
-class main {
+class main extends base_controller {
 	function __construct() {
+		parent::__construct();
 	}
 	
 	function index() {
 		// Exec view
-		require_once(APP_BASE_PATH.'views/template-main.php');
+		require_once($this->get_app_path().'views/template-main.php');
 	}
 }
 
