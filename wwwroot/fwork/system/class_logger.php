@@ -175,6 +175,11 @@ class logger
 		if( $this->log_level_threshold < $this->log_levels_available[$_log_level] ) {
 			return;
 		}
+
+		var_dump($this->log_level_threshold);
+		var_dump($this->log_levels_available[$_log_level]);
+		echo "<br/>";
+		
 		
 		if( !is_resource($this->log_file_ptr) ) {
 			throw new logger_exception("Cant find log file resource. Log filename: ".$this->log_file);

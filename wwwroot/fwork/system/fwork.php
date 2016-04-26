@@ -120,6 +120,10 @@ class fwork
 			$this->terminate($e);
 		}
 		
+		echo "<pre>";
+		var_dump($this->logger);
+		echo "</pre>";
+		
 		/* Try to open log file */
 		try {
 			$this->logger->open();
